@@ -1,7 +1,12 @@
+// Importing the 'nanoid' function from the 'nanoid' module
 const { nanoid } = require("nanoid");
+
+// Importing the 'books' array from a local module file
 const books = require("./books");
 
+// Handler function for adding books
 const addBooksHandler = (request, h) => {
+  // Destructuring properties from the request payload
   const {
     name,
     year,
@@ -13,7 +18,7 @@ const addBooksHandler = (request, h) => {
     reading,
   } = request.payload;
 
-  //Server merespons error jika Client tidak melampirkan name pada request body
+  // Server responds with an error if 'name' is not provided in the request body
   if (name === undefined) {
     const response = h.response({
       status: "fail",
@@ -22,7 +27,7 @@ const addBooksHandler = (request, h) => {
     response.code(400);
     return response;
 
-    //Server merespons error jika properti readPage lebih besar dari nilai pageCount
+    // Server responds with an error if 'readPage' is greater than 'pageCount'
   } else if (readPage > pageCount) {
     const response = h.response({
       status: "fail",
@@ -32,11 +37,15 @@ const addBooksHandler = (request, h) => {
     response.code(400);
     return response;
   } else {
-    const id = nanoid(16); //Membuat Id unik
-    const insertedAt = new Date().toISOString(); //Menampung tanggal dimasukkannya buku
-    const updatedAt = insertedAt; //Menampung tanggal diperbarui buku
-    const finished = pageCount === readPage; //Menjelaskan apakah buku telah selesai dibaca
+    // Generate a unique ID using nanoid
+    const id = nanoid(16);
+    // Get the current timestamp for 'insertedAt' and 'updatedAt'
+    const insertedAt = new Date().toISOString();
+    const updatedAt = insertedAt;
+    // Determine if the book is finished based on 'pageCount' and 'readPage'
+    const finished = pageCount === readPage;
 
+    // Create a new book object
     const newBooks = {
       id,
       name,
@@ -52,11 +61,13 @@ const addBooksHandler = (request, h) => {
       updatedAt,
     };
 
+    // Add the new book to the 'books' array
     books.push(newBooks);
 
+    // Check if the book was successfully added
     const isSuccess = books.filter((note) => note.id === id).length > 0;
 
-    //Server mengembalikan respons sukses bila buku berhasil dimasukkan
+    // Server responds with success if the book was successfully added
     if (isSuccess) {
       const response = h.response({
         status: "success",
@@ -70,7 +81,7 @@ const addBooksHandler = (request, h) => {
     }
   }
 
-  //Server merespons error bila buku gagal dimasukkan
+  // Server responds with an error if the book failed to be added
   const response = h.response({
     status: "error",
     message: "Catatan gagal ditambahkan",
@@ -79,10 +90,12 @@ const addBooksHandler = (request, h) => {
   return response;
 };
 
-//Menampilkan seluruh buku
+// Handler function for retrieving all books
 const getAllBooksHandler = (request, h) => {
+  // Destructuring properties from the request query
   const { name } = request.query;
-  //Menampilkan buku yang mengandung nama berdasarkan nilai yang diberikan pada query
+
+  // Display books containing the specified name in the query
   if (name !== undefined) {
     const BookshelfName = books.filter((book) =>
       book.name.toLowerCase().includes(name.toLowerCase())
@@ -101,26 +114,29 @@ const getAllBooksHandler = (request, h) => {
     return response;
   }
 
+  // Display all books if no name is specified in the query
   const response = h.response({
-    status: 'success',
+    status: "success",
     data: {
       books: books.map((book) => ({
         id: book.id,
         name: book.name,
         publisher: book.publisher,
       })),
-    }
+    },
   });
   response.code(200);
   return response;
 };
 
-//Menampilkan detail buku yang disimpan
+// Handler function for retrieving a book by ID
 const getBooksByIdHandler = (request, h) => {
+  // Destructuring properties from the request parameters
   const { id } = request.params;
+  // Find the book in the 'books' array based on the provided ID
   const book = books.filter((b) => b.id === id)[0];
 
-  //Server mengembalikan respons berupa data bila buku dan id yang dilampirkan ditemukan
+  // Server responds with book data if the book and ID are found
   if (book !== undefined) {
     return {
       status: "success",
@@ -130,7 +146,7 @@ const getBooksByIdHandler = (request, h) => {
     };
   }
 
-  //Server merespons error bila buku dan id yang dilampirkan tidak ditemukan
+  // Server responds with an error if the book and ID are not found
   const response = h.response({
     status: "fail",
     message: "Buku tidak ditemukan",
@@ -139,8 +155,9 @@ const getBooksByIdHandler = (request, h) => {
   return response;
 };
 
-//Mengubah data buku berdasarkan id
+// Handler function for editing a book by ID
 const editBooksByIdHandler = (request, h) => {
+  // Destructuring properties from the request parameters and payload
   const { id } = request.params;
   const {
     name,
@@ -153,10 +170,12 @@ const editBooksByIdHandler = (request, h) => {
     reading,
   } = request.payload;
 
+  // Get the current timestamp for 'updatedAt'
   const updatedAt = new Date().toISOString();
+  // Find the index of the book in the 'books' array based on the provided ID
   const index = books.findIndex((book) => book.id === id);
 
-  //Server merespons error bila client tidak melampirkan properti name
+  // Server responds with an error if 'name' is not provided
   if (name === undefined) {
     const response = h.response({
       status: "fail",
@@ -165,7 +184,7 @@ const editBooksByIdHandler = (request, h) => {
     response.code(400);
     return response;
 
-    //Server merespons error bila nilai readPage lebih besar dari nilai pageCount
+    // Server responds with an error if 'readPage' is greater than 'pageCount'
   } else if (readPage > pageCount) {
     const response = h.response({
       status: "fail",
@@ -175,7 +194,7 @@ const editBooksByIdHandler = (request, h) => {
     response.code(400);
     return response;
 
-    //Server mengembalikan respons success bila buku berhasil diperbarui
+    // Server responds with success if the book is successfully updated
   } else if (index !== -1) {
     books[index] = {
       ...books[index],
@@ -197,7 +216,7 @@ const editBooksByIdHandler = (request, h) => {
     response.code(200);
     return response;
 
-    //Server merespons error bila id yang dilampirkan tidak ditemukan oleh server
+    // Server responds with an error if the provided ID is not found
   } else {
     const response = h.response({
       status: "fail",
@@ -208,11 +227,14 @@ const editBooksByIdHandler = (request, h) => {
   }
 };
 
-//Menghapus buku
+// Handler function for deleting a book by ID
 const deleteBooksByIdHandler = (request, h) => {
+  // Destructuring properties from the request parameters
   const { id } = request.params;
+  // Find the index of the book in the 'books' array based on the provided ID
   const index = books.findIndex((book) => book.id === id);
 
+  // Server responds with success if the book is successfully deleted
   if (index !== -1) {
     books.splice(index, 1);
     const response = h.response({
@@ -223,6 +245,7 @@ const deleteBooksByIdHandler = (request, h) => {
     return response;
   }
 
+  // Server responds with an error if the provided ID is not found
   const response = h.response({
     status: "fail",
     message: "Buku gagal dihapus. Id tidak ditemukan",
@@ -231,6 +254,7 @@ const deleteBooksByIdHandler = (request, h) => {
   return response;
 };
 
+// Exporting all handler functions as an object
 module.exports = {
   addBooksHandler,
   getAllBooksHandler,
